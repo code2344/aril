@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+dist/
+circleos-grouped.aril
+circleos-adaptive.aril
+
+tools/preflate/target/
+
+# Local benchmarks and downloaded compression corpora
+benchmark/
+enwik1m
+enwik1m.aril
+enwik8.zip
+enwik8
+
+# Temporary archives and scratch checkouts
+tmp*/
+work/
+
+# Generated ARIL archives
+*.aril
