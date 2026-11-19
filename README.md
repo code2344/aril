@@ -2,6 +2,31 @@
 
 ARIL is a compression method that takes advantage of context, not just content. 
 
+Compression is inefficient. Encoding a text such as lorum ipsum in ascii produces `01001100 01101111 01110010 01110101 01101101 00100000 01101001 01110000 01110011 01110101 01101101`. Now, this is pretty long. If you were to talk to another person, and say "What word comes after lorum", they'll probably be able to tell you that it's ipsum. So, this program takes advantage of that, and, using a LLM, predicts the next word. This means you can then represent every single phrase, word, and file using a single float between 0 and 1. I explained that really poorly, but (this video)[https://www.youtube.com/watch?v=qbsb9DpdZ6s] explains it better. This program, on 1 MiB of wikipedia, performed better than .zip and .gz. However, it isn't perfect yet, and it still loses to bzip2 and xz. 
+
+## Setup
+
+Requirements: Python 3.13+, [uv](https://docs.astral.sh/uv/), and (optionally) Rust/Cargo for Git Preflate support.
+
+```sh
+git clone github.com/code2344/aril
+cd aril
+uv sync
+```
+
+Run ARIL directly from the checkout:
+
+```sh
+uv run aril --help
+```
+
+To install the command as a user-level tool instead:
+
+```sh
+uv tool install .
+aril --help
+```
+
 ## Files and folders
 
 ```sh
@@ -11,15 +36,11 @@ uv run aril list notes.aril
 uv run aril decompress notes.aril -o restored/
 ```
 
-For a folder, `-o` names the new folder that will contain the restored files. For a single file, it names the restored file. Use an output path that does not already exist. ARIL supports regular files and directories, including empty ones.
-
-Compression and extraction show progress in a terminal. Compression counts input bytes, and extraction tracks progress through the archive.
-
-Fast mode is the default for ordinary files and folders. Git repositories use grouped mode by default when the Preflate helper is available. It compares raw and DEFLATE payloads for each 64 KiB block. For ASCII text, it also tries MicroGen on the first 128 bytes of a block and keeps the neural encoding when it shrinks the complete payload. At most 256 bytes per archive are sent through the model in fast mode.
+`-o` is to set output, can be a directory or file name. 
 
 Use `--model microgen` or `--model micromixer` for full neural compression. These modes predict every byte and are intended for small experiments. The archive records how to decode each block, so extraction needs no model flag.
 
-The first operation that uses a predictor downloads its checkpoint. MicroMixer downloads about 4 MB of weights. Use the same platform and locked environment for archives with neural blocks until cross-platform compatibility has been verified.
+The first operation that uses a predictor downloads its checkpoint from hugging face. MicroMixer downloads about 4 MB of weights.
 
 ## Solid compression
 
@@ -71,6 +92,4 @@ Use `--no-preflate` to disable the trial or `--preflate` to require the helper. 
 
 ## Interactive text
 
-Run `uv run aril` for the text prompt. It still uses `digits:byte_count:binary_prefix` codes. The `decompress` command can also restore files from those codes.
-
-Inspect a next-byte prediction with `uv run python examples/inspect_prediction.py`.
+Run `uv run aril` for the text prompt. It uses `digits:byte_count:binary_prefix` codes. The `decompress` command can also restore files from those codes.
